@@ -156,6 +156,7 @@ Some operations are **private**, meaning they **do require a Binance API key** t
 ### Operation: `"account"` (private)
 `=BINANCE("account")` will return total account assets from Binance wallets (SPOT + EARN + CROSS + ISOLATED + FUTURES + SUB-ACCOUNTS).
 * `=BINANCE("account", "spot")` Display assets summary for SPOT wallet.
+  * `=BINANCE("account", "spot", "account: false")` Omits account info.
 * `=BINANCE("account", "earn")` Display assets summary for EARN (flexible+locked) wallet.  
 **NOTE:** Just 100 items from flexible and 100 from locked. This needs to be improved by adding pagination support when calling Binance API.
 * `=BINANCE("account", "cross")` Display assets summary for CROSS MARGIN wallet.
