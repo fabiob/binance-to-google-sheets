@@ -63,7 +63,7 @@ function BinRequest(OPTIONS) {
   */
   function _request(method, url, qs, payload, opts) {
     const CACHE_OK_KEY = method+"_"+url+"_"+qs;
-    const API_URL = _makeApiUrl(opts);
+    const API_URL = _makeApiUrl(opts, url);
     const need_auth = !opts["public"]; // Calling a private endpoint
     const headers = opts["headers"] || {};
     const da_payload = payload ? JSON.stringify(payload) : "";
@@ -141,7 +141,7 @@ function BinRequest(OPTIONS) {
     throw new Error("Request failed with status: "+response.getResponseCode());
   }
 
-  function _makeApiUrl(opts) {
+  function _makeApiUrl(opts, url) {
     if (USE_PROXY) {
       return _makeProxyApiUrl(opts)
     }
@@ -151,13 +151,27 @@ function BinRequest(OPTIONS) {
     if (opts["delivery"]) {
       return DELIVERY_API_URL;
     }
-
-    /**
-    * Builds an URL for the Spot API, using one of the 4 available clusters at random.
-    * Thank you @fabiob for the PR! :: https://github.com/fabiob
-    * @see {@link https://binance-docs.github.io/apidocs/spot/en/#general-api-information}
-    */
-    return SPOT_API_URL.replace(/api/, `api${Math.floor(Math.random() * 4) || ''}`);
+    
+    // when possible, use the Market Data Only URL, see
+    // https://developers.binance.com/docs/binance-spot-api-docs/faqs/market_data_only
+    switch (url) {
+      case "api/v3/aggTrades":
+      case "api/v3/avgPrice":
+      case "api/v3/depth":
+      case "api/v3/exchangeInfo":
+      case "api/v3/klines":
+      case "api/v3/ping":
+      case "api/v3/ticker":
+      case "api/v3/ticker/24hr":
+      case "api/v3/ticker/bookTicker":
+      case "api/v3/ticker/price":
+      case "api/v3/time":
+      case "api/v3/trades":
+      case "api/v3/uiKlines":
+        return VISION_API_URL;
+      default:
+        return SPOT_API_URL;
+    }
   }
 
   // The ports below should match the ones defined at:
