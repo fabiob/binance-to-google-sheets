@@ -154,8 +154,9 @@ function BinDoAccountInfo() {
     }, {});
   }
 
-  function parse(type, data, {headers: show_headers}) {
+  function parse(type, data, {headers: show_headers, account: show_account}) {
     show_headers = BinUtils().parseBool(show_headers);
+    show_account = BinUtils().parseBool(show_account);
     if (type === "overview") {
       return parseOverview(show_headers);
     }
@@ -164,7 +165,7 @@ function BinDoAccountInfo() {
     }
 
     if (type === "spot") {
-      return parseSpot(data, show_headers);
+      return parseSpot(data, show_headers, show_account);
     }
     if (_walletMainType(type) === "earn") {
       return parseEarn(data, show_headers);
@@ -208,12 +209,11 @@ function BinDoAccountInfo() {
     return show_headers ? [headers, ...sorted] : sorted;
   }
 
-  function parseSpot(data, show_headers) {
+  function parseSpot(data, show_headers, show_account) {
     const wallet = BinWallet();
-    const header1 = ["Account Type", "Maker Commission", "Taker Commission", "Buyer Commission", "Seller Commission", "Can Trade", "Can Withdraw", "Can Deposit", "Last Update"];
-    const header2 = ["Asset", "Free", "Locked", "Total"];
-    const account = ["Spot", data.makerCommission, data.takerCommission, data.buyerCommission, data.sellerCommission, data.canTrade, data.canWithdraw, data.canDeposit, new Date()];
-    const general = show_headers ? [header1, account, header2] : [account];
+    const header1 = !show_headers || !show_account ? [] : [["Account Type", "Maker Commission", "Taker Commission", "Buyer Commission", "Seller Commission", "Can Trade", "Can Withdraw", "Can Deposit", "Last Update"]];
+    const header2 = !show_headers ? [] : [["Asset", "Free", "Locked", "Total"]];
+    const account = !show_account ? [] : [["Spot", data.makerCommission, data.takerCommission, data.buyerCommission, data.sellerCommission, data.canTrade, data.canWithdraw, data.canDeposit, new Date()]];
 
     const assets = [];
     const balances = (data.balances || []).reduce(function(rows, a) {
@@ -234,7 +234,7 @@ function BinDoAccountInfo() {
     wallet.setSpotAssets(assets);
 
     const sorted = BinUtils().sortResults(balances);
-    return [...general, ...sorted];
+    return [...header1, ...account, ...header2, ...sorted];
   }
 
   function parseEarn(data, show_headers) {
